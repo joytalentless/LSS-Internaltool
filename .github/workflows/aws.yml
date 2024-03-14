@@ -1,0 +1,36 @@
+name: Internal Tools
+on:
+    push:
+        branches: ['main']
+
+env:
+  REACT_APP_VERSION: v1.0.0
+  GENERATE_SOURCEMAP: false
+  REACT_APP_API_URL: ${{ secrets.REACT_APP_API_URL }}
+  
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v3
+
+            - name: Install Node
+              uses: actions/setup-node@v3
+              with:
+                  node-version: v20.8.1
+
+            - name: Install dependencies
+              run: npm install --force
+
+            - name: Run build task
+              run: npm run build
+
+            - name: Deploy to Server
+              uses: easingthemes/ssh-deploy@main
+              with:
+                  SSH_PRIVATE_KEY: ${{ secrets.PRIVATE_KEY_EC2 }}
+                  SOURCE: './'
+                  REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
+                  REMOTE_USER: ${{ secrets.REMOTE_USER }}
+                  TARGET: ${{ secrets.REMOTE_TARGET }}
+                  EXCLUDE: '/node_modules/'
